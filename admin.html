@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>RELAY. Admin Console</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #fefae0;
+            --card: #faedcd;
+            --action: #d4a373;
+            --dark: #b5845a;
+            --mid: #ccd5ae;
+            --lt: #e9edc9;
+            --text: #3d2c1e;
+            --muted: #8c6b4a;
+            --border: #ccd5ae;
+            --white: #fff;
+            --overlay: rgba(61, 44, 30, .55);
+            --danger: #9b2e2e;
+            --danger-lt: #fef2f2;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Playfair Display', serif
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif
+        }
+
+        /* LOGIN OVERLAY */
+        #login-wrap {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2.8rem 2.4rem;
+            width: min(380px, 94vw);
+            text-align: center;
+        }
+
+        .login-box h2 {
+            font-size: 1.6rem;
+            margin-bottom: .3rem
+        }
+
+        .login-box .sub {
+            font-size: .82rem;
+            color: var(--muted);
+            margin-bottom: 1.8rem
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: .7rem 1rem;
+            margin-bottom: .8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            font-size: .9rem;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            letter-spacing: .2em;
+            outline: none;
+            transition: border-color.2s;
+        }
+
+        .login-box input:focus {
+            border-color: var(--action)
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: .8rem;
+            background: var(--action);
+            color: var(--white);
+            font-size: .82rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-radius: 3px;
+            transition: background.2s;
+        }
+
+        .login-box button:hover {
+            background: var(--dark)
+        }
+
+        #login-err {
+            font-size: .8rem;
+            color: var(--danger);
+            margin-top: .6rem;
+            min-height: 1.1rem
+        }
+
+        .lock-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem
+        }
+
+        /* DASHBOARD */
+        #dashboard {
+            display: none
+        }
+
+        .dash-header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .dh-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: var(--action);
+            font-weight: 700
+        }
+
+        .dh-logo span {
+            font-family: 'Inter', sans-serif;
+            color: var(--muted);
+            font-size: .7rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            margin-left: .5rem
+        }
+
+        .dh-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem
+        }
+
+        .dh-badge {
+            font-size: .72rem;
+            background: var(--lt);
+            border: 1px solid var(--mid);
+            border-radius: 100px;
+            padding: .3rem .9rem;
+            color: var(--muted);
+            letter-spacing: .08em
+        }
+
+        #logout-btn {
+            font-size: .75rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            padding: .4rem 1rem;
+            background: transparent;
+            border: 1px solid var(--action);
+            color: var(--action);
+            border-radius: 2px;
+            font-weight: 500;
+            transition: background.2s, color.2s;
+        }
+
+        #logout-btn:hover {
+            background: var(--action);
+            color: var(--white)
+        }
+
+        /* TABS */
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            padding: 0 2rem;
+            background: var(--bg);
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+        }
+
+        .tab-btn {
+            padding: .85rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            font-size: .8rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 500;
+            transition: color.2s, border-color.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--action);
+            border-bottom-color: var(--action)
+        }
+
+        .tab-btn:hover {
+            color: var(--text)
+        }
+
+        /* PANELS */
+        .panel {
+            display: none;
+            padding: 2rem;
+            max-width: 1100px;
+            margin: 0 auto
+        }
+
+        .panel.active {
+            display: block
+        }
+
+        /* CARDS / PANELS */
+        .box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 1.6rem;
+            margin-bottom: 1.5rem
+        }
+
+        .box h3 {
+            font-size: 1.05rem;
+            margin-bottom: .25rem
+        }
+
+        .box .sub {
+            font-size: .78rem;
+            color: var(--muted);
+            margin-bottom: 1.3rem
+        }
+
+        /* FORM */
+        .fg {
+            margin-bottom: .9rem
+        }
+
+        .fg label {
+            display: block;
+            font-size: .7rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: .32rem;
+            font-weight: 500
+        }
+
+        .fg input,
+        .fg select {
+            width: 100%;
+            padding: .58rem .8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            font-family: 'Inter', sans-serif;
+            font-size: .88rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color.2s;
+        }
+
+        .fg input:focus,
+        .fg select:focus {
+            border-color: var(--action)
+        }
+
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .8rem
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: .8rem
+        }
+
+        .toggle-row label:first-child {
+            font-size: .78rem;
+            color: var(--muted);
+            font-weight: 500;
+            letter-spacing: .05em
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 23px
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0
+        }
+
+        .ts-slider {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+            background: var(--border);
+            border-radius: 23px;
+            transition: background.3s
+        }
+
+        .ts-slider::before {
+            content: '';
+            position: absolute;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            background: var(--white);
+            left: 3px;
+            top: 3px;
+            transition: transform.3s
+        }
+
+        .toggle-switch input:checked+.ts-slider {
+            background: var(--action)
+        }
+
+        .toggle-switch input:checked+.ts-slider::before {
+            transform: translateX(19px)
+        }
+
+        .submit-btn {
+            padding: .7rem 1.5rem;
+            background: var(--action);
+            color: var(--white);
+            font-size: .78rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-radius: 3px;
+            transition: background.2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--dark)
+        }
+
+        .submit-btn:disabled {
+            background: var(--mid);
+            cursor: default
+        }
+
+        .toast-inline {
+            font-size: .78rem;
+            color: #4a7c40;
+            padding: .35rem .7rem;
+            background: #e8f5e9;
+            border-radius: 3px;
+            display: none;
+            margin-top: .5rem
+        }
+
+        /* TABLES */
+        .tbl-wrap {
+            overflow-x: auto
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .84rem
+        }
+
+        th {
+            text-align: left;
+            padding: .6rem .8rem;
+            font-size: .68rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap
+        }
+
+        td {
+            padding: .7rem .8rem;
+            border-bottom: 1px solid var(--lt);
+            vertical-align: middle
+        }
+
+        td img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 3px
+        }
+
+        tr:hover td {
+            background: var(--lt)
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            font-size: .68rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding: .28rem .65rem;
+            border-radius: 2px;
+            white-space: nowrap
+        }
+
+        .badge-relay {
+            background: var(--lt);
+            border: 1px solid var(--mid);
+            color: var(--text)
+        }
+
+        .badge-hot {
+            background: var(--action);
+            color: var(--white)
+        }
+
+        .badge-off {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--muted)
+        }
+
+        .badge-danger {
+            background: var(--danger-lt);
+            border: 1px solid #fca5a5;
+            color: var(--danger)
+        }
+
+        .tbl-empty {
+            padding: 2.5rem;
+            text-align: center;
+            color: var(--muted);
+            font-style: italic;
+            font-size: .88rem
+        }
+
+        .icon-btn {
+            background: none;
+            padding: .35rem .5rem;
+            border-radius: 2px;
+            font-size: .88rem;
+            transition: background.2s
+        }
+
+        .icon-btn:hover {
+            background: var(--lt)
+        }
+
+        .del-btn {
+            background: none;
+            padding: .3rem .6rem;
+            font-size: .75rem;
+            color: var(--danger);
+            border: 1px solid transparent;
+            border-radius: 2px;
+            transition: border-color.2s
+        }
+
+        .del-btn:hover {
+            border-color: var(--danger);
+            background: var(--danger-lt)
+        }
+
+        /* STATS */
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 140px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.1rem 1.3rem
+        }
+
+        .stat-card .val {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--action);
+            font-family: 'Playfair Display', serif
+        }
+
+        .stat-card .lbl {
+            font-size: .72rem;
+            color: var(--muted);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-top: .2rem
+        }
+
+        /* AUDIT */
+        .audit-item {
+            display: flex;
+            gap: 1rem;
+            padding: .7rem 0;
+            border-bottom: 1px solid var(--lt);
+            align-items: flex-start
+        }
+
+        .audit-action {
+            font-size: .72rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--action);
+            flex-shrink: 0;
+            min-width: 140px
+        }
+
+        .audit-detail {
+            font-size: .82rem;
+            color: var(--text)
+        }
+
+        .audit-ts {
+            font-size: .72rem;
+            color: var(--muted);
+            margin-top: .1rem;
+            white-space: nowrap
+        }
+
+        .audit-ip {
+            font-size: .7rem;
+            color: var(--mid);
+            font-family: monospace;
+            margin-top: .1rem
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══════ LOGIN ════════════════════════════════════════════════ -->
+    <div id="login-wrap">
+        <div class="login-box">
+            <div class="lock-icon">🔐</div>
+            <h2>Relay Console</h2>
+            <p class="sub">Enter the admin passphrase to access the relay control panel. All access is logged.</p>
+            <input type="password" id="admin-pw" placeholder="• • • • • • • •"
+                onkeyup="if(event.key==='Enter')doLogin()" />
+            <button onclick="doLogin()">Enter Dashboard</button>
+            <div id="login-err"></div>
+        </div>
+    </div>
+
+    <!-- ══════ DASHBOARD ════════════════════════════════════════════ -->
+    <div id="dashboard">
+        <header class="dash-header">
+            <div class="dh-logo">RELAY.<span>Admin Console</span></div>
+            <div class="dh-right">
+                <div class="dh-badge">🔒 Secured Session</div>
+                <button id="logout-btn" onclick="doLogout()">Logout ×</button>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="showTab('products')">📦 Products</button>
+            <button class="tab-btn" onclick="showTab('orders')">📋 Orders</button>
+            <button class="tab-btn" onclick="showTab('users')">👤 Users</button>
+            <button class="tab-btn" onclick="showTab('promos')">🎟 Promos</button>
+            <button class="tab-btn" onclick="showTab('audit')">🕵 Audit Log</button>
+        </nav>
+
+        <!-- PRODUCTS TAB -->
+        <section class="panel active" id="tab-products">
+            <div style="display:grid;grid-template-columns:360px 1fr;gap:1.5rem;align-items:start">
+                <div class="box">
+                    <h3>Add New Product</h3>
+                    <p class="sub">Published products appear on the storefront instantly.</p>
+                    <form onsubmit="uploadProduct(event)">
+                        <div class="fg"><label>Product Title</label><input type="text" id="p-title"
+                                placeholder="e.g. Leather Notebook" required /></div>
+                        <div class="fg"><label>Image URL</label><input type="url" id="p-img"
+                                placeholder="https://images.unsplash.com/…" required /></div>
+                        <div class="fg"><label>Price (₹)</label><input type="number" id="p-price" placeholder="2499"
+                                min="1" required /></div>
+                        <div class="toggle-row">
+                            <label>🔥 Mark as Hot Selling</label>
+                            <label class="toggle-switch"><input type="checkbox" id="p-hot" /><span
+                                    class="ts-slider"></span></label>
+                        </div>
+                        <button type="submit" class="submit-btn" id="upload-btn">Publish Product ↑</button>
+                        <div class="toast-inline" id="upload-toast">✓ Product published!</div>
+                    </form>
+                </div>
+
+                <div class="box">
+                    <h3>Product Catalogue</h3>
+                    <p class="sub">Manage all products. Toggle hot selling or delete.</p>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Title</th>
+                                    <th>Price</th>
+                                    <th>Hot</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-tbody">
+                                <tr>
+                                    <td colspan="5" class="tbl-empty">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ORDERS TAB -->
+        <section class="panel" id="tab-orders">
+            <div class="stats-row" id="order-stats"></div>
+            <div class="box">
+                <h3>Order Relay Status</h3>
+                <p class="sub">Every row is a relay push. We do not ship — the manufacturer does. Your role ends at
+                    relay.</p>
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product(s)</th>
+                                <th>Customer</th>
+                                <th>Address</th>
+                                <th>Total</th>
+                                <th>Promo</th>
+                                <th>Coins Used</th>
+                                <th>Coins Earned</th>
+                                <th>Status</th>
+                                <th>Relayed At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <tr>
+                                <td colspan="9" class="tbl-empty">Loading…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- USERS TAB -->
+        <section class="panel" id="tab-users">
+            <div class="stats-row" id="user-stats"></div>
+            <div class="box">
+                <h3>Registered Users</h3>
+                <p class="sub">All users and their RELAY Coin balances. No passwords shown — bcrypt-hashed server-side.
+                </p>
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>◈ Coin Balance</th>
+                                <th>Referral Code</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <tr>
+                                <td colspan="5" class="tbl-empty">Loading…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROMOS TAB -->
+        <section class="panel" id="tab-promos">
+            <div style="display:grid;grid-template-columns:340px 1fr;gap:1.5rem;align-items:start">
+                <div class="box">
+                    <h3>Create Promo Code</h3>
+                    <p class="sub">Percent (%) or flat (₹) discount. Set max uses to limit redemptions.</p>
+                    <form onsubmit="createPromo(event)">
+                        <div class="fg"><label>Code</label><input type="text" id="pr-code" placeholder="SAVE20"
+                                style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"
+                                required /></div>
+                        <div class="row2">
+                            <div class="fg">
+                                <label>Type</label>
+                                <select id="pr-type">
+                                    <option value="percent">Percent (%)</option>
+                                    <option value="flat">Flat (₹)</option>
+                                </select>
+                            </div>
+                            <div class="fg"><label>Value</label><input type="number" id="pr-value" placeholder="10"
+                                    min="1" required /></div>
+                        </div>
+                        <div class="fg"><label>Max Uses (blank = unlimited)</label><input type="number" id="pr-max"
+                                placeholder="100" min="1" /></div>
+                        <button type="submit" class="submit-btn" id="promo-btn">Create Code</button>
+                        <div class="toast-inline" id="promo-toast">✓ Promo code created!</div>
+                    </form>
+                </div>
+
+                <div class="box">
+                    <h3>Active Promo Codes</h3>
+                    <p class="sub">Default codes: <strong>RELAY10</strong> (10% off) · <strong>WELCOME50</strong> (₹50
+                        off)</p>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Type</th>
+                                    <th>Value</th>
+                                    <th>Uses</th>
+                                    <th>Max</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="promos-tbody">
+                                <tr>
+                                    <td colspan="7" class="tbl-empty">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AUDIT TAB -->
+        <section class="panel" id="tab-audit">
+            <div class="box">
+                <h3>Audit Log</h3>
+                <p class="sub">Every admin and user action is recorded with timestamp and IP address. Last 200 entries.
+                </p>
+                <div id="audit-list">
+                    <div class="tbl-empty">Loading…</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        /* ─── API ─────────────────────────────────────────────────────── */
+        async function api(method, url, body) {
+            const res = await fetch(url, { method, credentials: 'include', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+            return res.json();
+        }
+
+        /* ─── Login ───────────────────────────────────────────────────── */
+        async function doLogin() {
+            const pw = document.getElementById('admin-pw').value;
+            const err = document.getElementById('login-err');
+            err.textContent = '';
+            const data = await api('POST', '/api/admin/auth/login', { password: pw });
+            if (data.error) { err.textContent = data.error; document.getElementById('admin-pw').select(); return; }
+            document.getElementById('login-wrap').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            loadAll();
+        }
+        async function doLogout() {
+            await api('POST', '/api/admin/auth/logout');
+            location.reload();
+        }
+
+        /* ─── Auto-check session ─────────────────────────────────────── */
+        (async () => {
+            const d = await api('GET', '/api/admin/auth/check');
+            if (d.ok) { document.getElementById('login-wrap').style.display = 'none'; document.getElementById('dashboard').style.display = 'block'; loadAll(); }
+        })();
+
+        /* ─── Tabs ────────────────────────────────────────────────────── */
+        function showTab(name) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if (name === 'orders') loadOrders();
+            if (name === 'users') loadUsers();
+            if (name === 'promos') loadPromos();
+            if (name === 'audit') loadAudit();
+        }
+
+        function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN') }
+        function fmtDate(s) { return new Date(s).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }
+
+        /* ─── PRODUCTS ────────────────────────────────────────────────── */
+        async function loadProducts() {
+            const { products = [] } = await api('GET', '/api/admin/products');
+            const tb = document.getElementById('products-tbody');
+            if (!products.length) { tb.innerHTML = '<tr><td colspan="5" class="tbl-empty">No products yet.</td></tr>'; return; }
+            tb.innerHTML = products.map(p => `
+    <tr>
+      <td><img src="${p.img}" alt="${p.title}" onerror="this.src='https://images.unsplash.com/photo-1581579186913-45ac3e6efe93?w=200'"/></td>
+      <td style="max-width:220px;font-weight:500">${p.title}</td>
+      <td style="font-weight:700;color:var(--action)">${fmt(p.price)}</td>
+      <td>
+        <label class="toggle-switch">
+          <input type="checkbox" ${p.hot ? 'checked' : ''} onchange="toggleHot(${p.id},this.checked)"/>
+          <span class="ts-slider"></span>
+        </label>
+      </td>
+      <td><button class="del-btn" onclick="deleteProduct(${p.id},this)">Delete</button></td>
+    </tr>`).join('');
+        }
+        async function uploadProduct(e) {
+            e.preventDefault();
+            const btn = document.getElementById('upload-btn');
+            btn.disabled = true; btn.textContent = 'Publishing…';
+            const data = await api('POST', '/api/admin/products', {
+                title: document.getElementById('p-title').value,
+                img: document.getElementById('p-img').value,
+                price: document.getElementById('p-price').value,
+                hot: document.getElementById('p-hot').checked
+            });
+            btn.disabled = false; btn.textContent = 'Publish Product ↑';
+            if (data.error) { alert(data.error); return; }
+            e.target.reset();
+            const t = document.getElementById('upload-toast'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);
+            loadProducts();
+        }
+        async function toggleHot(id, val) {
+            await api('PATCH', `/api/admin/products/${id}`, { hot: val });
+        }
+        async function deleteProduct(id, btn) {
+            if (!confirm('Delete this product? This cannot be undone.')) return;
+            btn.disabled = true;
+            await api('DELETE', `/api/admin/products/${id}`);
+            loadProducts();
+        }
+
+        /* ─── ORDERS ──────────────────────────────────────────────────── */
+        async function loadOrders() {
+            const { orders = [] } = await api('GET', '/api/admin/orders');
+            const stats = document.getElementById('order-stats');
+            const total = orders.reduce((a, o) => a + o.finalPrice, 0);
+            stats.innerHTML = `
+    <div class="stat-card"><div class="val">${orders.length}</div><div class="lbl">Total Orders</div></div>
+    <div class="stat-card"><div class="val">${fmt(total)}</div><div class="lbl">Total Revenue</div></div>
+    <div class="stat-card"><div class="val">${orders.filter(o => new Date(o.relayedAt).toDateString() === new Date().toDateString()).length}</div><div class="lbl">Today's Relays</div></div>`;
+            const tb = document.getElementById('orders-tbody');
+            if (!orders.length) { tb.innerHTML = '<tr><td colspan="9" class="tbl-empty">No orders relayed yet. Awaiting first transmission.</td></tr>'; return; }
+            tb.innerHTML = orders.map(o => `
+    <tr>
+      <td>${o.items.map(i => `<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.25rem"><img src="${i.img}" onerror="this.src='https://images.unsplash.com/photo-1581579186913-45ac3e6efe93?w=200'" style="width:36px;height:36px"/><span style="font-size:.8rem">${i.title} ×${i.qty}</span></div>`).join('')}</td>
+      <td style="font-weight:500">${o.customerName}</td>
+      <td style="font-size:.78rem;color:var(--muted);max-width:160px">${o.address}</td>
+      <td style="font-weight:700;color:var(--action)">${fmt(o.finalPrice)}</td>
+      <td>${o.promoCode ? `<span class="badge badge-hot">${o.promoCode}</span>` : '<span style="color:var(--muted);font-size:.78rem">—</span>'}</td>
+      <td>${o.coinsUsed > 0 ? `<span style="color:var(--dark);font-weight:600">◈ ${o.coinsUsed}</span>` : '—'}</td>
+      <td><span style="color:var(--action);font-weight:600">◈ +${o.coinsEarned}</span></td>
+      <td><span class="badge badge-relay">• Direct-to-Manufacturer Pushed</span></td>
+      <td style="font-size:.76rem;color:var(--muted);white-space:nowrap">${fmtDate(o.relayedAt)}</td>
+    </tr>`).join('');
+        }
+
+        /* ─── USERS ───────────────────────────────────────────────────── */
+        async function loadUsers() {
+            const { users = [], coin = {} } = await api('GET', '/api/admin/users');
+            const stats = document.getElementById('user-stats');
+            const totalCoins = users.reduce((a, u) => a + u.coins, 0);
+            stats.innerHTML = `
+    <div class="stat-card"><div class="val">${users.length}</div><div class="lbl">Registered Users</div></div>
+    <div class="stat-card"><div class="val">◈ ${totalCoins.toLocaleString()}</div><div class="lbl">Total Coins in Circulation</div></div>`;
+            const tb = document.getElementById('users-tbody');
+            if (!users.length) { tb.innerHTML = '<tr><td colspan="5" class="tbl-empty">No users registered yet.</td></tr>'; return; }
+            tb.innerHTML = users.map(u => `
+    <tr>
+      <td style="font-weight:500">${u.name}</td>
+      <td style="color:var(--muted);font-size:.85rem">${u.email}</td>
+      <td><span style="color:var(--action);font-weight:700">◈ ${u.coins}</span></td>
+      <td><code style="background:var(--lt);padding:.2rem .5rem;border-radius:2px;font-size:.8rem;letter-spacing:.1em">${u.referralCode}</code></td>
+      <td style="font-size:.76rem;color:var(--muted)">${fmtDate(u.createdAt)}</td>
+    </tr>`).join('');
+        }
+
+        /* ─── PROMOS ──────────────────────────────────────────────────── */
+        async function loadPromos() {
+            const { promos = [] } = await api('GET', '/api/admin/promos');
+            const tb = document.getElementById('promos-tbody');
+            if (!promos.length) { tb.innerHTML = '<tr><td colspan="7" class="tbl-empty">No promo codes yet.</td></tr>'; return; }
+            tb.innerHTML = promos.map(p => `
+    <tr>
+      <td><code style="background:var(--lt);padding:.2rem .55rem;border-radius:2px;font-size:.82rem;letter-spacing:.1em;font-weight:700">${p.code}</code></td>
+      <td>${p.type === 'percent' ? 'Percent' : 'Flat'}</td>
+      <td style="font-weight:600;color:var(--action)">${p.type === 'percent' ? p.value + '%' : '₹' + p.value}</td>
+      <td>${p.usedCount}</td>
+      <td>${p.maxUses || '∞'}</td>
+      <td><span class="badge ${p.active ? 'badge-relay' : 'badge-off'}">${p.active ? 'Active' : 'Inactive'}</span></td>
+      <td><button class="del-btn" onclick="deletePromo('${p.code}',this)">Delete</button></td>
+    </tr>`).join('');
+        }
+        async function createPromo(e) {
+            e.preventDefault();
+            const btn = document.getElementById('promo-btn');
+            btn.disabled = true; btn.textContent = 'Creating…';
+            const data = await api('POST', '/api/admin/promos', {
+                code: document.getElementById('pr-code').value,
+                type: document.getElementById('pr-type').value,
+                value: document.getElementById('pr-value').value,
+                maxUses: document.getElementById('pr-max').value || null
+            });
+            btn.disabled = false; btn.textContent = 'Create Code';
+            if (data.error) { alert(data.error); return; }
+            e.target.reset();
+            const t = document.getElementById('promo-toast'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);
+            loadPromos();
+        }
+        async function deletePromo(code, btn) {
+            if (!confirm(`Delete promo code "${code}"?`)) return;
+            btn.disabled = true;
+            await api('DELETE', `/api/admin/promos/${code}`);
+            loadPromos();
+        }
+
+        /* ─── AUDIT ───────────────────────────────────────────────────── */
+        async function loadAudit() {
+            const { logs = [] } = await api('GET', '/api/admin/audit');
+            const al = document.getElementById('audit-list');
+            if (!logs.length) { al.innerHTML = '<div class="tbl-empty">No audit entries yet.</div>'; return; }
+            al.innerHTML = logs.map(l => `
+    <div class="audit-item">
+      <div class="audit-action">${l.action}</div>
+      <div>
+        <div class="audit-detail">${l.details}</div>
+        <div class="audit-ts">${fmtDate(l.ts)}</div>
+        <div class="audit-ip">${l.ip}</div>
+      </div>
+    </div>`).join('');
+        }
+
+        /* ─── Load All ────────────────────────────────────────────────── */
+        function loadAll() { loadProducts(); loadOrders(); }
+    </script>
+</body>
+
+</html>
